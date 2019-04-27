@@ -13,33 +13,37 @@ import Complex from "./Complex";
  */
 
 const gpu = new GPU();
-const c = new Complex(-1, 0);
+const c = new Complex(0, 0);
 
+/*
 document.getElementById("cambiar").addEventListener("click", () => {
   c.Re = Number(document.getElementById("real").value);
   c.Im = Number(document.getElementById("im").value);
 });
-
+*/
 const Fractal = gpu
   .createKernel(function(r, i, w, h, scale) {
+    const profundidad = 100;
     var y = scale * (this.thread.x / w) - scale / 2;
     var x = scale * (this.thread.y / h) - scale / 2;
     var temp1,
       temp2,
       n = 0;
 
-    while (n < 100) {
+    while (n < profundidad) {
       temp1 = x * x - y * y;
       temp2 = 2 * x * y;
 
       x = temp1 + i;
       y = temp2 + r;
 
-      if (sqrt(pow(x, 2) + pow(y, 2)) > 100) break;
+      if (sqrt(pow(x, 2) + pow(y, 2)) > profundidad) break;
       n++;
     }
-    n = n / 200;
-    this.color(1 - n, 1 - n, 1 - n);
+    
+    n = n / profundidad;
+
+    this.color(n - 0.1, n - 0.1, 0.1 + n);
   })
   .setOutput([window.innerWidth, window.innerHeight])
   .setGraphical(true);
@@ -47,10 +51,29 @@ const Fractal = gpu
 const canvas = Fractal.getCanvas();
 document.getElementsByTagName("body")[0].appendChild(canvas);
 
+const mouse = {
+  x: 0,
+  y: 0
+}
+
+document.addEventListener("mousemove", (event) => {
+  mouse.x = event.clientX / window.innerWidth
+  mouse.y = event.clientY / window.innerHeight
+
+  mouse.x -= 0.5
+  mouse.y -= 0.5
+
+  mouse.x *= 3
+  mouse.y *= 3
+})
+
 let counter = 0;
 setInterval(() => {
-  counter += 0.006;
-  c.Im = Math.cos(c.Im + counter);
-  c.Re = Math.cos(c.Re + counter);
+  // counter += 0.01;
+  // c.Im = Math.cos(c.Im + counter);
+  // c.Re = Math.cos(c.Re + counter);
+  c.Im = mouse.x
+  c.Re = mouse.y
   Fractal(c.Re, c.Im, window.innerWidth, window.innerHeight, 2);
-}, 1000 / 60);
+}, 1000 / 120);
+
